@@ -1,1 +1,4 @@
-console.log("testing")
+import { Visualizer } from "./graphics";
+
+const visualizer = new Visualizer();
+visualizer.init();

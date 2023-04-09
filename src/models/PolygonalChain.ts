@@ -1,16 +1,8 @@
 import * as geometry from '../utils/geometry'
+import {Point, Vector} from '../utils/geometry'
 
 
-// Points are for displaying
-interface Vector {
-    x: number;
-    y: number;
-}
 
-interface Point {
-    x: number;
-    y: number;
-}
   
 export class PolygonalChain {
     private points: Point[];
@@ -32,7 +24,7 @@ export class PolygonalChain {
     }
 
     public getNextPoint(index: number): Point {
-        if (index < length(this.points - 1)) {
+        if (index < this.points.length - 1) {
             return this.points[index + 1]
         } else {
             return this.points[0]
@@ -43,7 +35,7 @@ export class PolygonalChain {
         if (index > 0) {
             return this.points[index - 1]
         } else {
-            return this.points[length(this.points) - 1]
+            return this.points[this.points.length - 1]
         }
     }
 

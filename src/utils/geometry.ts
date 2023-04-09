@@ -1,3 +1,14 @@
+// Points are for displaying
+export interface Vector {
+    x: number;
+    y: number;
+}
+
+export interface Point {
+    x: number;
+    y: number;
+}
+
 export function dotProduct(u: Point, v: Point): number;
 export function dotProduct(u: Vector, v: Vector): number;
 

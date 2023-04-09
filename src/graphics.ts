@@ -3,6 +3,9 @@ import { PolygonalChain } from './models/PolygonalChain'
 
 export class Visualizer {
     private polygonalChain: PolygonalChain;
+    private width: number;
+    private height: number;
+    private svg: any;
 
     public init(): void{
         // set up the SVG canvas
@@ -12,7 +15,7 @@ export class Visualizer {
         this.svg = d3.select('body')
             .append('svg')
             .attr('width', this.width)
-            .attr.('height', this.height)
+            .attr('height', this.height)
 
             
         

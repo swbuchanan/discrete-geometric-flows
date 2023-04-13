@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-var geometry = require("../utils/geometry");
+var geometry = require("../../src/utils/geometry");
 var PolygonalChain = /** @class */ (function () {
     function PolygonalChain(points) {
         this.points = points;

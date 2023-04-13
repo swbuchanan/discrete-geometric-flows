@@ -1,35 +1,46 @@
-import * as d3 from 'd3';
-import { PolygonalChain } from './models/PolygonalChain'
+import * as d3 from "d3"; // Import D3.js library
 
 export class Visualizer {
-    private polygonalChain: PolygonalChain;
-    private width: number;
-    private height: number;
-    private svg: any;
+  private svg: any; // SVG container
+  private polygonalChain: any; // Polygonal chain data
 
-    public init(): void{
-        // set up the SVG canvas
-        this.width = 600;
-        this.height = 400;
+  constructor() {
+    // Initialize the SVG container
+    this.svg = d3.select("body")
+      .append("svg")
+      .attr("width", 500)
+      .attr("height", 500);
 
-        this.svg = d3.select('body')
-            .append('svg')
-            .attr('width', this.width)
-            .attr('height', this.height)
+    // Initialize the polygonal chain data
+    this.polygonalChain = [];
+  }
 
-            
-        
-            this.update();
-    }
+  public init(): void {
+    // Perform initialization tasks, such as setting up event listeners, data binding, etc.
 
-    private update(): void {
-        // TODO: update the visualization based on the current state of the polygonal chain
-    }
+    // Example: Add a polygonal chain to the SVG container
+    this.svg.append("path")
+      .attr("class", "polygonal-chain")
+      .attr("d", this.generatePathData(this.polygonalChain));
+  }
 
-    // animate the polygonal chain using d3.js
-    private animate(): void {
-        // TODO
-    }
+  public updatePolygonalChain(polygonalChainData: any[]): void {
+    // Update the polygonal chain data
 
+    // Example: Update the path data of the polygonal chain SVG element
+    this.svg.select(".polygonal-chain")
+      .attr("d", this.generatePathData(polygonalChainData));
+  }
 
+  private generatePathData(polygonalChainData: any[]): string {
+    // Generate the path data string for the polygonal chain SVG element
+
+    // Example: Implement your own logic to generate the path data string based on the polygonal chain data
+    // For example, you could use d3.line() to generate the path data string from an array of points
+    // Here's an example assuming each point has x and y properties:
+    return d3.line()
+      .x((d: any) => d.x)
+      .y((d: any) => d.y)
+      (polygonalChainData);
+  }
 }

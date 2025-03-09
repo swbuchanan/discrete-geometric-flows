@@ -1,5 +1,5 @@
 
-export class Point {
+export class Vector {
     x: number;
     y: number;
 
@@ -9,32 +9,32 @@ export class Point {
     }
 
     // Add another point to this point
-    add(other: Point): Point {
-        return new Point(this.x + other.x, this.y + other.y);
+    add(other: Vector): Vector {
+        return new Vector(this.x + other.x, this.y + other.y);
     }
 
     // Subtract another point from this point
-    subtract(other: Point): Point {
-        return new Point(this.x - other.x, this.y - other.y);
+    subtract(other: Vector): Vector {
+        return new Vector(this.x - other.x, this.y - other.y);
     }
 
     // Scale the point by a scalar
-    scale(factor: number): Point {
-        return new Point(this.x * factor, this.y * factor);
+    scale(factor: number): Vector {
+        return new Vector(this.x * factor, this.y * factor);
     }
 
     // Calculate the Euclidean distance to another point
-    distanceTo(other: Point): number {
+    distanceTo(other: Vector): number {
         return Math.sqrt((this.x - other.x) ** 2 + (this.y - other.y) ** 2);
     }
 
-    // Return the length of the Point, as if it were a vector
+    // Return the length of the Vector, as if it were a vector
     norm(): number {
         return Math.sqrt(this.x*this.x + this.y*this.y);
     }
 
-    normalize(): Point {
-        return new Point(this.x / this.norm(), this.y / this.norm());
+    normalize(): Vector {
+        return new Vector(this.x / this.norm(), this.y / this.norm());
     }
 
     // Convert the point to a string representation

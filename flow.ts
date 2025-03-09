@@ -71,7 +71,7 @@ class FlowCurve {
 
     constructor() {
         console.log(`created a flow curve`);
-        this.vertices = [new Vector(10,10)];
+        this.vertices = [];
         this.normals = [];
     }
 

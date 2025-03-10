@@ -8,6 +8,11 @@ export class Vector {
         this.y = y;
     }
 
+    // Take the dot product with another vector
+    dot(other: Vector): number {
+        return this.x * other.x + this.y * other.y;
+    }
+
     // Add another point to this point
     add(other: Vector): Vector {
         return new Vector(this.x + other.x, this.y + other.y);

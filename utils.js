@@ -5,6 +5,10 @@ export class Vector {
         this.x = x;
         this.y = y;
     }
+    // Take the dot product with another vector
+    dot(other) {
+        return this.x * other.x + this.y * other.y;
+    }
     // Add another point to this point
     add(other) {
         return new Vector(this.x + other.x, this.y + other.y);

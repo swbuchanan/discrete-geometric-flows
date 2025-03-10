@@ -4,6 +4,8 @@ class Canvas {
     canvas;
     curves;
     toggleButton;
+    animating;
+    animationId = null;
     addEventListeners() {
         console.log("added click listener");
         // listener for clicking on the canvas
@@ -26,10 +28,8 @@ class Canvas {
         // const ctx = this.canvas.getContext("2d");
         this.curves = [];
         this.toggleButton = document.getElementById("toggleAnimationButton");
+        this.animating = false;
         this.addEventListeners();
-    }
-    toggleAnimation() {
-        return; // TODO
     }
     drawCurves() {
         for (const curve of this.curves) {
@@ -48,13 +48,33 @@ class Canvas {
         this.curves.push(curve);
         console.log(`added a curve to canvas ${this.canvas.id}`);
     }
+    animate = () => {
+        for (const curve of this.curves) {
+            curve.flowStep();
+            curve.draw(this.canvas);
+        }
+        if (this.animating) {
+            this.animationId = requestAnimationFrame(this.animate);
+        }
+    };
+    toggleAnimation() {
+        this.animating = !this.animating;
+        if (this.animating) {
+            this.animate();
+        }
+        else {
+            if (this.animationId !== null) {
+                cancelAnimationFrame(this.animationId);
+            }
+        }
+    }
 }
 class FlowCurve {
     vertices;
     normals;
     constructor() {
         console.log(`created a flow curve`);
-        this.vertices = [new Vector(10, 10)];
+        this.vertices = [];
         this.normals = [];
     }
     clearVertices() {
@@ -84,6 +104,24 @@ class FlowCurve {
         this.drawNormals(canvas);
     }
     calculateNormal(idx) {
+        // this is the most interesting part; choosing different definitions of the normal will give different flows
+        // TODO: find out which one approximates CSF
+        // currently, the normal vector is always an angle bisector with norm given by the formula for kappa below
+        if (this.vertices.length < 2)
+            return new Vector(0, 0);
+        const left_idx = (idx - 1 + this.vertices.length) % this.vertices.length;
+        const right_idx = (idx + 1) % this.vertices.length;
+        let differenceToLeft = new Vector(this.vertices[left_idx].x, this.vertices[left_idx].y);
+        let differenceToRight = new Vector(this.vertices[right_idx].x, this.vertices[right_idx].y);
+        let bisector = new Vector(0, 0);
+        differenceToLeft = differenceToLeft.subtract(this.vertices[idx]).normalize();
+        differenceToRight = differenceToRight.subtract(this.vertices[idx]).normalize();
+        // I have no idea where this formula for curvature comes from
+        const kappa = Math.abs(Math.PI - Math.acos(differenceToLeft.dot(differenceToRight)));
+        bisector = differenceToLeft.add(differenceToRight).normalize();
+        // I think the .5 is just to make the speed nice
+        bisector = bisector.scale(.5 * kappa);
+        return bisector;
         return new Vector(0, 0); // TODO
     }
     draw(canvas) {
@@ -91,7 +129,6 @@ class FlowCurve {
         if (!ctx) {
             console.log("uh oh");
         }
-        console.log("okay");
         if (this.vertices.length < 1)
             return;
         // clear the canvas
@@ -117,10 +154,18 @@ class FlowCurve {
             this.clearVertices();
             return;
         }
+        // first move all the points
+        for (let i = 0; i < this.vertices.length; i++) {
+            this.vertices[i].x = this.vertices[i].x + this.normals[i].x;
+            this.vertices[i].y = this.vertices[i].y + this.normals[i].y;
+        }
+        // recalculate the normal vectors of all the moved points
+        for (let i = 0; i < this.vertices.length; i++) {
+            this.normals[i] = this.calculateNormal(i);
+        }
     }
 }
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("flow time baby");
     const canvas = new Canvas("networkFlowCanvas");
     const canvasCurve = new FlowCurve();
     canvas.addCurve(canvasCurve);

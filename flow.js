@@ -4,6 +4,7 @@ class Canvas {
     canvas;
     curves;
     toggleButton;
+    stepButton;
     animating;
     animationId = null;
     addEventListeners() {
@@ -21,6 +22,10 @@ class Canvas {
         this.toggleButton.addEventListener("click", () => {
             this.toggleAnimation();
         });
+        // listener for single flow step button
+        this.stepButton.addEventListener("click", () => {
+            this.flowStep();
+        });
     }
     constructor(canvasId) {
         console.log(`created a canvas with ID ${canvasId}`);
@@ -28,6 +33,7 @@ class Canvas {
         // const ctx = this.canvas.getContext("2d");
         this.curves = [];
         this.toggleButton = document.getElementById("toggleAnimationButton");
+        this.stepButton = document.getElementById("stepButton");
         this.animating = false;
         this.addEventListeners();
     }
@@ -47,6 +53,12 @@ class Canvas {
     addCurve(curve) {
         this.curves.push(curve);
         console.log(`added a curve to canvas ${this.canvas.id}`);
+    }
+    flowStep() {
+        for (const curve of this.curves) {
+            curve.flowStep();
+            curve.draw(this.canvas);
+        }
     }
     animate = () => {
         for (const curve of this.curves) {
@@ -140,13 +152,14 @@ class FlowCurve {
         // first idea: if any two adjacent vertices are too far apart (say distance 10), they get a new vertex added at the midpoint between them
         for (let i = 0; i < this.vertices.length; i++) {
             const nextIdx = (i + 1) % this.vertices.length;
-            if (this.vertices[i].distanceTo(this.vertices[nextIdx]) > 100) {
-                console.log(`vertex ${i} and vertex ${nextIdx} are too darn far apart`);
+            if (this.vertices[i].distanceTo(this.vertices[nextIdx]) > 20) {
+                // console.log(`vertex ${i} and vertex ${nextIdx} are too darn far apart`);
                 const x = (this.vertices[i].x + this.vertices[nextIdx].x) / 2;
                 const y = (this.vertices[i].y + this.vertices[nextIdx].y) / 2;
-                console.log(`vertex ${i} is at position (${this.vertices[i].x}, ${this.vertices[i].y}), and vertex ${i + 1} is at position (${this.vertices[nextIdx].x}, ${this.vertices[nextIdx].y}), so I'm adding a vertex at (${x}, ${y})`);
+                // console.log(`vertex ${i} is at position (${this.vertices[i].x}, ${this.vertices[i].y}), and vertex ${i+1} is at position (${this.vertices[nextIdx].x}, ${this.vertices[nextIdx].y}), so I'm adding a vertex at (${x}, ${y})`);
                 this.vertices.splice(i + 1, 0, new Vector(x, y));
                 this.normals.splice(i + 1, 0, new Vector(0, 0));
+                i++;
             }
         }
         this.calculateNormals();
@@ -171,6 +184,15 @@ class FlowCurve {
         ctx.strokeStyle = "black";
         ctx.lineWidth = 2;
         ctx.stroke();
+        // draw vertices
+        // this should be the color for the vertices
+        ctx.fillStyle = "blue";
+        for (const vertex of this.vertices) {
+            // draw a vertex
+            ctx.beginPath();
+            ctx.arc(vertex.x, vertex.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
     drawNormals(canvas) {
         // TODO
@@ -190,7 +212,7 @@ class FlowCurve {
         // remove any adjacent points that are now on top of each other
         for (let i = 0; i < this.vertices.length; i++) {
             if (this.vertices[i].distanceTo(this.vertices[(i + 1) % this.vertices.length]) < 1) {
-                console.log(`removing vertex ${i}`);
+                // console.log(`removing vertex ${i}`);
                 this.removeVertex(i);
             }
         }

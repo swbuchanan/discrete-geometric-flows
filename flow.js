@@ -24,6 +24,7 @@ class Canvas {
         });
         // listener for single flow step button
         this.stepButton.addEventListener("click", () => {
+            this.curves[0].printVertices();
             this.flowStep();
         });
     }
@@ -39,7 +40,6 @@ class Canvas {
     }
     drawCurves() {
         for (const curve of this.curves) {
-            console.log("draw");
             curve.draw(this.canvas);
         }
     }
@@ -92,6 +92,9 @@ class FlowCurve {
     clearVertices() {
         this.vertices = [];
         this.normals = [];
+    }
+    printVertices() {
+        console.log(this.vertices);
     }
     // remove a vertex and its normal vector
     removeVertex(idx) {
@@ -150,6 +153,7 @@ class FlowCurve {
         // this is complicated
         // the idea is to redistribute the vertices along the curve in a good way
         // first idea: if any two adjacent vertices are too far apart (say distance 10), they get a new vertex added at the midpoint between them
+        //    return;
         for (let i = 0; i < this.vertices.length; i++) {
             const nextIdx = (i + 1) % this.vertices.length;
             if (this.vertices[i].distanceTo(this.vertices[nextIdx]) > 20) {
@@ -166,6 +170,8 @@ class FlowCurve {
     }
     draw(canvas) {
         const ctx = canvas.getContext("2d");
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 2;
         if (!ctx) {
             console.log("uh oh");
         }
@@ -178,20 +184,19 @@ class FlowCurve {
         ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
         for (let i = 1; i < this.vertices.length; i++) {
             ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
+            console.log(`drawing a line to vertex ${i}, which has coordinates ${this.vertices[i].x}, ${this.vertices[i].y}`);
         }
         ctx.lineTo(this.vertices[0].x, this.vertices[0].y);
         // style the stroke
-        ctx.strokeStyle = "black";
-        ctx.lineWidth = 2;
         ctx.stroke();
         // draw vertices
         // this should be the color for the vertices
         ctx.fillStyle = "blue";
         for (const vertex of this.vertices) {
             // draw a vertex
-            ctx.beginPath();
-            ctx.arc(vertex.x, vertex.y, 2, 0, Math.PI * 2);
-            ctx.fill();
+            //ctx.beginPath();
+            //ctx.arc(vertex.x, vertex.y, 2, 0, Math.PI * 2);
+            //ctx.fill();
         }
     }
     drawNormals(canvas) {
@@ -203,7 +208,6 @@ class FlowCurve {
             this.clearVertices();
             return;
         }
-        this.reparametrize();
         // first move all the points
         for (let i = 0; i < this.vertices.length; i++) {
             this.vertices[i].x = this.vertices[i].x + this.normals[i].x;
@@ -212,18 +216,21 @@ class FlowCurve {
         // remove any adjacent points that are now on top of each other
         for (let i = 0; i < this.vertices.length; i++) {
             if (this.vertices[i].distanceTo(this.vertices[(i + 1) % this.vertices.length]) < 1) {
-                // console.log(`removing vertex ${i}`);
+                console.log(`removing vertex ${i} because it's on top of vertex ${(i + 1) % this.vertices.length}`);
                 this.removeVertex(i);
+                //i --;
             }
         }
         // recalculate the normal vectors of all the moved points
         for (let i = 0; i < this.vertices.length; i++) {
             this.normals[i] = this.calculateNormal(i);
         }
+        this.reparametrize();
     }
 }
 document.addEventListener("DOMContentLoaded", () => {
     const canvas = new Canvas("networkFlowCanvas");
+    // hi
     const canvasCurve = new FlowCurve();
     canvas.addCurve(canvasCurve);
 });

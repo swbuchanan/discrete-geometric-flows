@@ -1,5 +1,12 @@
 import * as utils from "./utils.js";
 import { Vector } from "./utils.js";
+class Vertex extends Vector {
+    normal;
+    constructor(x, y, normal) {
+        super(x, y);
+        this.normal = normal;
+    }
+}
 class Canvas {
     canvas;
     curves;
@@ -83,15 +90,12 @@ class Canvas {
 }
 class FlowCurve {
     vertices;
-    normals;
     constructor() {
         console.log(`created a flow curve`);
         this.vertices = [];
-        this.normals = [];
     }
     clearVertices() {
         this.vertices = [];
-        this.normals = [];
     }
     printVertices() {
         console.log(this.vertices);
@@ -99,7 +103,6 @@ class FlowCurve {
     // remove a vertex and its normal vector
     removeVertex(idx) {
         this.vertices.splice(idx, 1);
-        this.normals.splice(idx, 1);
     }
     // add a point at the position of the cursor
     addVertex(event, canvas) {
@@ -111,17 +114,15 @@ class FlowCurve {
             return;
         }
         // add the point and a normal vector (0 for now)
-        this.vertices.push(new Vector(x, y));
-        this.normals.push(new Vector(0, 0));
+        this.vertices.push(new Vertex(x, y, new Vector(0, 0)));
         // recalculate all the normal vectors
         if (this.vertices.length > 2) {
             for (let i = 0; i < this.vertices.length; i++) {
-                this.normals[i] = this.calculateNormal(i);
+                this.vertices[i].normal = this.calculateNormal(i);
                 continue;
             }
         }
         this.draw(canvas);
-        this.drawNormals(canvas);
     }
     calculateNormal(idx) {
         // this is the most interesting part; choosing different definitions of the normal will give different flows
@@ -131,39 +132,25 @@ class FlowCurve {
             return new Vector(0, 0);
         const left_idx = (idx - 1 + this.vertices.length) % this.vertices.length;
         const right_idx = (idx + 1) % this.vertices.length;
-        // console.log(`I have ${this.vertices.length} vertices and I'm trying to find ones at indices ${left_idx} and ${right_idx}`);
         let differenceToLeft = new Vector(this.vertices[left_idx].x, this.vertices[left_idx].y);
         let differenceToRight = new Vector(this.vertices[right_idx].x, this.vertices[right_idx].y);
-        if (isNaN(this.vertices[left_idx].x)) {
-            console.log(`nan this.vertices[left_idx].x`);
-        }
-        if (isNaN(this.vertices[left_idx].y)) {
-            console.log(`nan this.vertices[left_idx].y`);
-        }
-        if (isNaN(this.vertices[right_idx].x)) {
-            console.log(`nan this.vertices[left_idx].x`);
-        }
-        if (isNaN(this.vertices[left_idx].y)) {
-            console.log(`nan this.vertices[left_idx].y`);
-        }
-        // console.log(`differenceToRight: ${differenceToRight}`);
-        // console.log(`differenceToLeft: ${differenceToLeft}`);
         let bisector = new Vector(0, 0);
         differenceToLeft = differenceToLeft.subtract(this.vertices[idx]).normalize();
         differenceToRight = differenceToRight.subtract(this.vertices[idx]).normalize();
-        // console.log(`${differenceToLeft.dot(differenceToRight)}`);
+        const dotProduct = Math.max(-1, Math.min(1, differenceToLeft.dot(differenceToRight)));
         // I have no idea where this formula for curvature comes from
-        const kappa = Math.abs(Math.PI - Math.acos(differenceToLeft.dot(differenceToRight)));
-        // console.log(`kappa: ${kappa}`);
+        const kappa = Math.abs(Math.PI - Math.acos(dotProduct));
+        console.log(`kappa: ${kappa}`);
         bisector = differenceToLeft.add(differenceToRight).normalize();
         //        console.log(`found a bisector with coordinates ${bisector.x}, ${bisector.y}`);
         // I think the .5 is just to make the speed nice
         bisector = bisector.scale(0.5 * kappa);
+        console.log(`calculated a normal vector ${bisector.x, bisector.y}`);
         return bisector;
     }
     calculateNormals() {
-        for (let i = 0; i < this.normals.length; i++) {
-            this.calculateNormal(i);
+        for (let i = 0; i < this.vertices.length; i++) {
+            this.vertices[i].normal = this.calculateNormal(i);
         }
     }
     reparametrize() {
@@ -173,13 +160,12 @@ class FlowCurve {
         //    return;
         for (let i = 0; i < this.vertices.length; i++) {
             const nextIdx = (i + 1) % this.vertices.length;
-            if (this.vertices[i].distanceTo(this.vertices[nextIdx]) > 20) {
+            if (this.vertices[i].distanceTo(this.vertices[nextIdx]) > 10) {
                 // console.log(`vertex ${i} and vertex ${nextIdx} are too darn far apart`);
                 const x = (this.vertices[i].x + this.vertices[nextIdx].x) / 2;
                 const y = (this.vertices[i].y + this.vertices[nextIdx].y) / 2;
                 // console.log(`vertex ${i} is at position (${this.vertices[i].x}, ${this.vertices[i].y}), and vertex ${i+1} is at position (${this.vertices[nextIdx].x}, ${this.vertices[nextIdx].y}), so I'm adding a vertex at (${x}, ${y})`);
-                this.vertices.splice(i + 1, 0, new Vector(x, y));
-                this.normals.splice(i + 1, 0, new Vector(0, 0));
+                this.vertices.splice(i + 1, 0, new Vertex(x, y, new Vector(0, 0)));
                 i++;
             }
         }
@@ -200,7 +186,6 @@ class FlowCurve {
         ctx.moveTo(this.vertices[0].x, this.vertices[0].y);
         for (let i = 1; i < this.vertices.length; i++) {
             ctx.lineTo(this.vertices[i].x, this.vertices[i].y);
-            // console.log(`drawing a line to vertex ${i}, which has coordinates ${this.vertices[i].x}, ${this.vertices[i].y}`);
         }
         ctx.lineTo(this.vertices[0].x, this.vertices[0].y);
         // style the stroke
@@ -214,10 +199,20 @@ class FlowCurve {
             //ctx.arc(vertex.x, vertex.y, 2, 0, Math.PI * 2);
             //ctx.fill();
         }
+        // this.drawNormals(canvas);
     }
     drawNormals(canvas) {
         // TODO
-        return;
+        const scaleFactor = 20; // for aesthetics
+        const ctx = canvas.getContext("2d");
+        ctx.beginPath();
+        for (let i = 0; i < this.vertices.length; i++) {
+            ctx.moveTo(this.vertices[i].x, this.vertices[i].y);
+            ctx.lineTo(this.vertices[i].x + scaleFactor * this.vertices[i].normal.x, this.vertices[i].y + scaleFactor * this.vertices[i].normal.y);
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
     }
     flowStep() {
         if (this.vertices.length < 3) {
@@ -229,25 +224,12 @@ class FlowCurve {
         this.calculateNormals();
         // first move all the points
         for (let i = 0; i < this.vertices.length; i++) {
-            if (isNaN(this.normals[i].x)) {
-                console.log(`normal ${i} has NaN x coordinate`);
-            }
-            if (isNaN(this.normals[i].y)) {
-                console.log(`normal ${i} has NaN y coordinate`);
-            }
-            if (isNaN(this.vertices[i].x)) {
-                console.log(`vertex ${i} has NaN x coordinate`);
-            }
-            if (isNaN(this.vertices[i].y)) {
-                console.log(`vertex ${i} has NaN y coordinate`);
-            }
-            this.vertices[i].x = this.vertices[i].x + this.normals[i].x;
-            this.vertices[i].y = this.vertices[i].y + this.normals[i].y;
+            this.vertices[i].x = this.vertices[i].x + this.vertices[i].normal.x;
+            this.vertices[i].y = this.vertices[i].y + this.vertices[i].normal.y;
         }
         // remove any adjacent points that are now on top of each other
         for (let i = 0; i < this.vertices.length; i++) {
             if (this.vertices[i].distanceTo(this.vertices[(i + 1) % this.vertices.length]) < 1) {
-                // console.log(`removing vertex ${i} because it's on top of vertex ${(i+1) % this.vertices.length}`);
                 this.removeVertex(i);
                 //i --;
             }

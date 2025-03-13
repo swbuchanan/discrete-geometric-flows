@@ -39,7 +39,10 @@ export class Vector {
     }
 
     normalize(): Vector {
-        return new Vector(this.x / this.norm(), this.y / this.norm());
+        if (this.norm() !== 0) {
+            return new Vector(this.x / this.norm(), this.y / this.norm());
+        }
+        return new Vector(0,0);
     }
 
     // Convert the point to a string representation

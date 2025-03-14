@@ -9,11 +9,14 @@ class Vertex extends Vector {
 }
 class Canvas {
     canvas;
+    ctx;
     curves;
     toggleButton;
+    clearButton;
     stepButton;
     animating;
     animationId = null;
+    geometry;
     addEventListeners() {
         console.log("added click listener");
         // listener for clicking on the canvas
@@ -34,16 +37,39 @@ class Canvas {
             this.curves[0].printVertices();
             this.flowStep();
         });
+        this.clearButton.addEventListener("click", () => {
+            this.clearCurves();
+        });
     }
-    constructor(canvasId) {
+    constructor(canvasId, geometry = "euclidean") {
         console.log(`created a canvas with ID ${canvasId}`);
         this.canvas = document.getElementById(canvasId);
-        // const ctx = this.canvas.getContext("2d");
+        this.ctx = this.canvas.getContext("2d");
         this.curves = [];
+        this.geometry = geometry;
         this.toggleButton = document.getElementById("toggleAnimationButton");
         this.stepButton = document.getElementById("stepButton");
+        this.clearButton = document.getElementById("clearButton");
         this.animating = false;
         this.addEventListeners();
+    }
+    resizeCanvas() {
+        console.log("resizing");
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        if (this.geometry = "hyperbolic") {
+            console.log("clippin");
+            this.clipToCircle();
+        }
+    }
+    clipToCircle() {
+        const radius = Math.min(this.canvas.width, this.canvas.height) / 2;
+        this.ctx.beginPath();
+        this.ctx.arc(this.canvas.width / 2, this.canvas.height / 2, radius, 0, Math.PI * 2);
+        this.ctx.strokeStyle = "black";
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+        this.ctx.clip();
     }
     drawCurves() {
         for (const curve of this.curves) {
@@ -60,6 +86,13 @@ class Canvas {
     addCurve(curve) {
         this.curves.push(curve);
         console.log(`added a curve to canvas ${this.canvas.id}`);
+    }
+    clearCurves() {
+        this.curves = [];
+        if (this.animating) {
+            this.toggleAnimation();
+        }
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
     flowStep() {
         for (const curve of this.curves) {
@@ -235,7 +268,9 @@ class FlowCurve {
     }
 }
 document.addEventListener("DOMContentLoaded", () => {
-    const canvas = new Canvas("networkFlowCanvas");
+    const canvas = new Canvas("networkFlowCanvas", "hyperbolic");
+    window.addEventListener("resize", canvas.resizeCanvas);
+    canvas.resizeCanvas();
     // hi
     const canvasCurve = new FlowCurve();
     canvas.addCurve(canvasCurve);

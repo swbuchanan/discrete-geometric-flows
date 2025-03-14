@@ -156,6 +156,7 @@ class FlowCurve {
         // this is the most interesting part; choosing different definitions of the normal will give different flows
         // TODO: find out which one approximates CSF
         // currently, the normal vector is always an angle bisector with norm given by the formula for kappa below
+        const speedScale = .5;
       
         if (this.vertices.length < 2) return new Vector(0,0);
 
@@ -177,8 +178,7 @@ class FlowCurve {
         bisector = differenceToLeft.add(differenceToRight).normalize();
 //        console.log(`found a bisector with coordinates ${bisector.x}, ${bisector.y}`);
 
-        // I think the .5 is just to make the speed nice
-        bisector = bisector.scale(0.5*kappa);
+        bisector = bisector.scale(speedScale*kappa);
 
 
         console.log(`calculated a normal vector ${bisector.x, bisector.y}`);
@@ -286,7 +286,7 @@ class FlowCurve {
 
         // remove any adjacent points that are now on top of each other
         for (let i = 0; i < this.vertices.length; i++) {
-            if (this.vertices[i].distanceTo(this.vertices[(i+1) % this.vertices.length]) < 1) {
+            if (this.vertices[i].distanceTo(this.vertices[(i+1) % this.vertices.length]) < 2) {
                 this.removeVertex(i);
                 //i --;
             }

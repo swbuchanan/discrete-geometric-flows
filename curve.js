@@ -1,4 +1,5 @@
 import { Vector } from "./utils.js";
+import { HyperbolicVector } from "./utils.js";
 class Vertex extends Vector {
     normal;
     constructor(x, y, normal) {
@@ -8,9 +9,11 @@ class Vertex extends Vector {
 }
 export class FlowCurve {
     vertices;
-    constructor() {
+    geometry;
+    constructor(geometry = "euclidean") {
         console.log(`created a flow curve`);
         this.vertices = [];
+        this.geometry = geometry;
     }
     clearVertices() {
         this.vertices = [];
@@ -22,6 +25,11 @@ export class FlowCurve {
     removeVertex(idx) {
         this.vertices.splice(idx, 1);
     }
+    // creates a vector based on the currently selected geometry type
+    // in particular, all the normal vectors should be HyperbolicVectors if hyperbolic geometry is enabled
+    createGeometryVector(x, y, base_x, base_y) {
+        return this.geometry == "hyperbolic" ? new HyperbolicVector(x, y, base_x, base_y) : new Vector(x, y);
+    }
     // add a point at the position of the cursor
     addVertex(event, canvas) {
         const rect = canvas.getBoundingClientRect();
@@ -32,7 +40,7 @@ export class FlowCurve {
             return;
         }
         // add the point and a normal vector (0 for now)
-        this.vertices.push(new Vertex(x, y, new Vector(0, 0)));
+        this.vertices.push(new Vertex(x, y, this.createGeometryVector(0, 0, x, y)));
         // recalculate all the normal vectors
         if (this.vertices.length > 2) {
             for (let i = 0; i < this.vertices.length; i++) {
@@ -53,7 +61,7 @@ export class FlowCurve {
         const right_idx = (idx + 1) % this.vertices.length;
         let differenceToLeft = new Vector(this.vertices[left_idx].x, this.vertices[left_idx].y);
         let differenceToRight = new Vector(this.vertices[right_idx].x, this.vertices[right_idx].y);
-        let bisector = new Vector(0, 0);
+        let bisector = this.createGeometryVector(0, 0, this.vertices[idx].x, this.vertices[idx].y);
         differenceToLeft = differenceToLeft.subtract(this.vertices[idx]).normalize();
         differenceToRight = differenceToRight.subtract(this.vertices[idx]).normalize();
         const dotProduct = Math.max(-1, Math.min(1, differenceToLeft.dot(differenceToRight)));

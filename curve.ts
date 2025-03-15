@@ -1,5 +1,6 @@
 import * as utils from "./utils.js";
 import { Vector } from "./utils.js";
+import { HyperbolicVector } from "./utils.js";
 
 
 class Vertex extends Vector {
@@ -14,10 +15,12 @@ class Vertex extends Vector {
 
 export class FlowCurve {
     private vertices: Vertex[];
+    geometry: string;
 
-    constructor() {
+    constructor(geometry: string="euclidean") {
         console.log(`created a flow curve`);
         this.vertices = [];
+        this.geometry = geometry;
     }
 
     private clearVertices() {
@@ -33,6 +36,12 @@ export class FlowCurve {
         this.vertices.splice(idx,1);
     }
 
+    // creates a vector based on the currently selected geometry type
+    // in particular, all the normal vectors should be HyperbolicVectors if hyperbolic geometry is enabled
+    createGeometryVector(x: number, y: number, base_x: number, base_y: number): Vector {
+        return this.geometry == "hyperbolic" ? new HyperbolicVector(x, y, base_x, base_y) : new Vector(x, y);
+    }
+
     // add a point at the position of the cursor
     addVertex(event: MouseEvent, canvas: HTMLCanvasElement) {
         const rect = canvas.getBoundingClientRect();
@@ -45,7 +54,7 @@ export class FlowCurve {
         }
         
         // add the point and a normal vector (0 for now)
-        this.vertices.push(new Vertex(x,y, new Vector(0,0)));
+        this.vertices.push(new Vertex(x,y, this.createGeometryVector(0,0,x,y)));
 
         // recalculate all the normal vectors
         if (this.vertices.length > 2) {
@@ -70,7 +79,7 @@ export class FlowCurve {
 
         let differenceToLeft = new Vector(this.vertices[left_idx].x, this.vertices[left_idx].y);
         let differenceToRight = new Vector(this.vertices[right_idx].x, this.vertices[right_idx].y);
-        let bisector = new Vector(0,0);
+        let bisector = this.createGeometryVector(0,0,this.vertices[idx].x,this.vertices[idx].y);
 
         differenceToLeft = differenceToLeft.subtract(this.vertices[idx]).normalize();
         differenceToRight = differenceToRight.subtract(this.vertices[idx]).normalize();

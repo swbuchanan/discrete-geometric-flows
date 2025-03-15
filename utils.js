@@ -40,6 +40,25 @@ export class Vector {
         return `(${this.x}, ${this.y})`;
     }
 }
+export class HyperbolicVector extends Vector {
+    /*
+      This vector will be treated as lying in the tangent space of the point (base_x, base_y) in Euclidean coordinates
+    */
+    base_x;
+    base_y;
+    constructor(x, y, base_x, base_y) {
+        super(x, y);
+        this.base_x = base_x;
+        this.base_y = base_y;
+    }
+    // Do we need to overwrite the dot product method?
+    // Using Poincare metric
+    // ds^2 = \frac{4 \sum_{i=1}^n (dx^i)^2}{(1 - \sum_{i=1}^n x_i^2)^2},
+    // where x_i are the coordinates of the basepoint
+    norm() {
+        return 4 * (this.x ** 2 + this.y ** 2) / (1 - (this.base_x ** 2 + this.base_y ** 2));
+    }
+}
 export function getMousePosition(event, canvas) {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;

@@ -9,7 +9,7 @@ It is the "most efficient" way to decrease the length of a curve, and perhaps th
 See also https://a.carapetis.com/csf/ for a nice demonstration of this with some information.
 
 ## Network flow:
-My plan is to add some customization options to the page linked above, but for now you can find a simulation of network flow [here](https://stevenbuchanan.net/cool-stuff/).
+My plan is to add some customization options to the page linked above so that can select different flows, but for now you can find a simulation of network flow [here](https://stevenbuchanan.net/cool-stuff/).
 
 ## Discrete curve shortening flow:
 Same as for network flow; there is a temporary version of this on my personal site.
@@ -17,4 +17,5 @@ If this is defined appropriately, we can use it to approximate smooth curve shor
 
 # To do list:
 - Curve shortening flow in hyperbolic geometry
-- Various discrete flows
+- Better UI
+- Other flows?
